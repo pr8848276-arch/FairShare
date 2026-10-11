@@ -748,9 +748,9 @@
       <div id="cloudModalStatusBanner" class="mt-4 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 flex items-start gap-3">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 shrink-0 pulse-subtle"></span>
         <div>
-          <h4 id="cloudModalStatusTitle" class="text-xs font-bold text-emerald-900 dark:text-emerald-200">Local Multi-Tab Sync Active (Fallback Cloud Mode)</h4>
+          <h4 id="cloudModalStatusTitle" class="text-xs font-bold text-emerald-900 dark:text-emerald-200">Firebase Firestore Linked & Active</h4>
           <p id="cloudModalStatusDesc" class="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5 leading-relaxed">
-            Real-time peer broadcast is currently keeping multiple tabs and browser windows synced instantly! To sync across different physical phones over the internet, paste your Firebase Firestore configuration below.
+            Connected to project <strong>fairshare-59067</strong>. All group expenses, member updates, and settlements sync in real-time across multiple phones and computers over the cloud!
           </p>
         </div>
       </div>
@@ -759,14 +759,11 @@
       <div class="mt-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
         <div class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
           <span>🚀</span>
-          <span>How to connect your Free Firebase Firestore in 2 minutes:</span>
+          <span>Firebase Project Linked: <strong>fairshare-59067</strong></span>
         </div>
-        <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-500 dark:text-slate-400 pl-1">
-          <li>Go to <a href="https://console.firebase.google.com" target="_blank" class="text-indigo-600 dark:text-indigo-400 font-semibold underline">Firebase Console</a> & click <strong>Create a project</strong> (100% Free).</li>
-          <li>Click <strong>Build ➔ Firestore Database</strong> ➔ <strong>Create Database</strong> in <em>Test Mode</em>.</li>
-          <li>Go to <strong>Project Settings ➔ General ➔ Your apps</strong>, click Web icon (<strong>&lt;/&gt;</strong>).</li>
-          <li>Copy the values from the <code class="bg-slate-200 dark:bg-slate-700 px-1 rounded">firebaseConfig</code> object and paste them below:</li>
-        </ol>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 pl-1">
+          Your Firebase Firestore project is configured out-of-the-box. Any member opening your share link or entering your Room Code will automatically connect to this cloud database.
+        </p>
       </div>
 
       <!-- Firebase Config Form -->
@@ -774,22 +771,22 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
             <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase">apiKey</label>
-            <input type="text" id="fbApiKey" placeholder="AIzaSy..." class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="fbApiKey" value="AIzaSyBRTvVKf9xdPodKTTTswpPFL4Bf5_wn6sU" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase">projectId</label>
-            <input type="text" id="fbProjectId" placeholder="my-expense-split-app" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="fbProjectId" value="fairshare-59067" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
             <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase">authDomain</label>
-            <input type="text" id="fbAuthDomain" placeholder="my-app.firebaseapp.com" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="fbAuthDomain" value="fairshare-59067.firebaseapp.com" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase">appId</label>
-            <input type="text" id="fbAppId" placeholder="1:123456789:web:abcdef" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="fbAppId" value="1:125069540955:web:30cfe5185f870ab59bc97e" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
         </div>
 
@@ -927,6 +924,17 @@
 
     const STORAGE_KEY = 'fairshare_cloud_app_v2';
     const FB_CONFIG_KEY = 'fairshare_firebase_config_v2';
+
+    // Firebase Project Configuration (fairshare-59067)
+    const DEFAULT_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyBRTvVKf9xdPodKTTTswpPFL4Bf5_wn6sU",
+      authDomain: "fairshare-59067.firebaseapp.com",
+      projectId: "fairshare-59067",
+      storageBucket: "fairshare-59067.firebasestorage.app",
+      messagingSenderId: "125069540955",
+      appId: "1:125069540955:web:30cfe5185f870ab59bc97e",
+      measurementId: "G-8RNMZQH68W"
+    };
 
     // Global Application State
     let appState = {
@@ -1125,16 +1133,19 @@
     // --- FIREBASE CLOUD FIRESTORE INTEGRATION ---
     function initFirebaseCloud() {
       try {
+        let config = DEFAULT_FIREBASE_CONFIG;
         const savedConfigStr = localStorage.getItem(FB_CONFIG_KEY);
-        if (!savedConfigStr) {
-          setCloudStatusUI(false, 'Local & Tab Relay (Click to setup Firestore)');
-          return;
-        }
-
-        const config = JSON.parse(savedConfigStr);
-        if (!config.apiKey || !config.projectId) {
-          setCloudStatusUI(false, 'Local & Tab Relay');
-          return;
+        if (savedConfigStr) {
+          try {
+            const parsed = JSON.parse(savedConfigStr);
+            if (parsed && parsed.disabled) {
+              setCloudStatusUI(false, 'Local Peer Mode (Cloud Disabled)');
+              return;
+            }
+            if (parsed && parsed.apiKey && parsed.projectId) {
+              config = parsed;
+            }
+          } catch (e) {}
         }
 
         if (typeof firebase === 'undefined') {
@@ -2077,14 +2088,26 @@
     // --- CLOUD FIRESTORE MODAL SETTINGS ---
     function openCloudModal() {
       const savedConfig = localStorage.getItem(FB_CONFIG_KEY);
+      let cfg = DEFAULT_FIREBASE_CONFIG;
       if (savedConfig) {
         try {
-          const cfg = JSON.parse(savedConfig);
-          document.getElementById('fbApiKey').value = cfg.apiKey || '';
-          document.getElementById('fbProjectId').value = cfg.projectId || '';
-          document.getElementById('fbAuthDomain').value = cfg.authDomain || '';
-          document.getElementById('fbAppId').value = cfg.appId || '';
+          const parsed = JSON.parse(savedConfig);
+          if (parsed && !parsed.disabled) cfg = parsed;
         } catch (e) {}
+      }
+      document.getElementById('fbApiKey').value = cfg.apiKey || '';
+      document.getElementById('fbProjectId').value = cfg.projectId || '';
+      document.getElementById('fbAuthDomain').value = cfg.authDomain || '';
+      document.getElementById('fbAppId').value = cfg.appId || '';
+
+      const statusTitle = document.getElementById('cloudModalStatusTitle');
+      const statusDesc = document.getElementById('cloudModalStatusDesc');
+      if (isCloudOnline) {
+        statusTitle.textContent = '🟢 Firebase Firestore Linked & Active';
+        statusDesc.innerHTML = 'Connected to project <strong>' + (cfg.projectId || 'fairshare-59067') + '</strong>. All changes sync in real-time across all devices!';
+      } else {
+        statusTitle.textContent = '🟡 Local Peer Mode';
+        statusDesc.textContent = 'Cloud sync is currently disconnected. Click "Save & Connect Cloud" to reconnect to Firebase.';
       }
 
       const modal = document.getElementById('cloudModal');
@@ -2118,7 +2141,10 @@
         apiKey,
         projectId,
         authDomain: authDomain || `${projectId}.firebaseapp.com`,
-        appId: appId || ''
+        storageBucket: `${projectId}.firebasestorage.app`,
+        messagingSenderId: "125069540955",
+        appId: appId || "1:125069540955:web:30cfe5185f870ab59bc97e",
+        measurementId: "G-8RNMZQH68W"
       };
 
       localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(config));
@@ -2161,7 +2187,7 @@
 
     function clearFirebaseConfig() {
       if (confirm('Disconnect Firebase cloud backend? The app will fallback to local & multi-tab sync.')) {
-        localStorage.removeItem(FB_CONFIG_KEY);
+        localStorage.setItem(FB_CONFIG_KEY, JSON.stringify({ disabled: true }));
         isCloudOnline = false;
         firebaseDb = null;
         if (firestoreUnsubscribe) firestoreUnsubscribe();
