@@ -150,6 +150,14 @@
             </svg>
           </button>
 
+          <!-- Active Member Presence & Switcher -->
+          <button onclick="openUserIdentifyModal()" id="currentUserBadgeBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800 transition" title="Choose who you are in this group">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0 pulse-subtle"></span>
+            <span class="hidden sm:inline text-slate-500 dark:text-slate-400 font-normal">You:</span>
+            <span id="currentUserNameText" class="font-bold truncate max-w-[80px] sm:max-w-[120px]">Who are you?</span>
+            <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+
           <!-- Primary Add Expense Button -->
           <button onclick="openExpenseModal()" class="inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-md shadow-indigo-600/30 transition transform hover:-translate-y-0.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -569,6 +577,56 @@
     </div>
   </div>
 
+  <!-- USER IDENTITY MODAL ("WHO ARE YOU?") -->
+  <div id="userIdentifyModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl transform scale-95 transition-transform duration-200">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shadow-sm">
+            👋
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Who are you?</h3>
+            <p id="userIdentifyModalSubtitle" class="text-xs text-slate-500">Pick your name in this group</p>
+          </div>
+        </div>
+        <button onclick="closeUserIdentifyModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <p class="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+          Tap your name to continue:
+        </p>
+
+        <!-- Dynamic Member Chips -->
+        <div id="userIdentifyMembersGrid" class="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Join as New Member -->
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Not in this list? Add yourself:</p>
+          <form onsubmit="handleJoinAsNewMember(event)" class="flex gap-2">
+            <input type="text" id="joinNewMemberNameInput" placeholder="Your name (e.g. Sneha)" maxlength="25" class="flex-1 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button type="submit" class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm shrink-0">
+              Join
+            </button>
+          </form>
+        </div>
+
+        <div class="pt-1 text-center">
+          <button type="button" onclick="closeUserIdentifyModal()" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+            Browse as Guest
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- EDIT / RENAME MEMBER MODAL -->
   <div id="renameMemberModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl transform scale-95 transition-transform duration-200">
@@ -939,6 +997,7 @@
     // Global Application State
     let appState = {
       currentGroupId: 'ROOM-101',
+      currentUser: null,
       currency: '₹',
       darkMode: false,
       groups: {
@@ -948,13 +1007,15 @@
           currency: '₹',
           members: ['Rahul', 'Amit', 'Pooja'],
           expenses: [],
-          updatedAt: Date.now()
+          updatedAt: 0,
+          isPlaceholder: false
         }
       },
       // Local filter states
       searchQuery: '',
       categoryFilter: 'ALL',
-      lastUpdatedAt: 0
+      lastUpdatedAt: 0,
+      hasPromptedIdentity: false
     };
 
     // Firebase state
@@ -1004,14 +1065,15 @@
     // Helper: Current Group Pointer
     function getCurrentGroup() {
       if (!appState.groups[appState.currentGroupId]) {
-        // Fallback initialize
+        // Fallback placeholder while Firestore document loads
         appState.groups[appState.currentGroupId] = {
           id: appState.currentGroupId,
-          name: 'Shared Expenses',
+          name: `Room ${appState.currentGroupId}`,
           currency: appState.currency || '₹',
-          members: ['Rahul', 'Amit', 'Pooja'],
+          members: [],
           expenses: [],
-          updatedAt: Date.now()
+          updatedAt: 0,
+          isPlaceholder: true
         };
       }
       return appState.groups[appState.currentGroupId];
@@ -1078,6 +1140,10 @@
           if (typeof parsed.darkMode === 'boolean') {
             appState.darkMode = parsed.darkMode;
           }
+          const savedUser = localStorage.getItem('fairshare_user_' + appState.currentGroupId) || parsed.currentUser;
+          if (savedUser) {
+            appState.currentUser = savedUser;
+          }
         }
       } catch (e) {
         console.error('Failed to load local state:', e);
@@ -1089,9 +1155,13 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           groups: appState.groups,
           currentGroupId: appState.currentGroupId,
+          currentUser: appState.currentUser,
           currency: appState.currency,
           darkMode: appState.darkMode
         }));
+        if (appState.currentUser) {
+          localStorage.setItem('fairshare_user_' + appState.currentGroupId, appState.currentUser);
+        }
       } catch (e) {
         console.error('Failed to save local state:', e);
       }
@@ -1181,22 +1251,48 @@
       const groupId = appState.currentGroupId;
       const docRef = firebaseDb.collection('fairshare_groups').doc(groupId);
 
-      firestoreUnsubscribe = docRef.onSnapshot((docSnapshot) => {
+      firestoreUnsubscribe = docRef.onSnapshot({ includeMetadataChanges: true }, (docSnapshot) => {
         if (docSnapshot.exists) {
           const remoteData = docSnapshot.data();
-          const currentLocal = getCurrentGroup();
-          if (remoteData && remoteData.updatedAt > (currentLocal.updatedAt || 0)) {
-            appState.groups[groupId] = remoteData;
+          // Authoritative sync from cloud when write is confirmed or from another device
+          if (!docSnapshot.metadata.hasPendingWrites) {
+            const prevGroup = appState.groups[groupId];
+            appState.groups[groupId] = {
+              id: remoteData.id || groupId,
+              name: remoteData.name || `Room ${groupId}`,
+              currency: remoteData.currency || appState.currency || '₹',
+              members: Array.isArray(remoteData.members) && remoteData.members.length > 0 ? remoteData.members : (prevGroup && prevGroup.members && prevGroup.members.length > 0 ? prevGroup.members : ['Rahul', 'Amit', 'Pooja']),
+              expenses: Array.isArray(remoteData.expenses) ? remoteData.expenses : [],
+              updatedAt: remoteData.updatedAt || Date.now(),
+              isPlaceholder: false
+            };
             saveLocalStateOnly();
             renderApp();
-            showToast(`☁️ Real-time cloud sync updated "${remoteData.name}"`, 'success');
+            checkUserIdentityPrompt();
+
+            // Notify if another member added a new bill
+            if (prevGroup && prevGroup.expenses && remoteData.expenses && remoteData.expenses.length > prevGroup.expenses.length) {
+              const latest = remoteData.expenses[0];
+              showToast(`☁️ ${latest.paidBy || 'Member'} added "${latest.title}" (${formatMoney(latest.amount)})`, 'success');
+            }
           }
         } else {
-          syncGroupToFirebase(getCurrentGroup());
+          // Document does not exist in Firestore yet
+          const current = getCurrentGroup();
+          if (current) {
+            if (!current.members || current.members.length === 0) {
+              current.members = ['Rahul', 'Amit', 'Pooja'];
+            }
+            current.isPlaceholder = false;
+            current.updatedAt = Date.now();
+            syncGroupToFirebase(current);
+            renderApp();
+            checkUserIdentityPrompt();
+          }
         }
       }, (error) => {
-        console.warn('Firestore onSnapshot listener warning:', error);
-        setCloudStatusUI(false, 'Cloud disconnected');
+        console.warn('Firestore onSnapshot listener error:', error);
+        setCloudStatusUI(false, 'Cloud Sync Disconnected');
       });
     }
 
@@ -1204,14 +1300,15 @@
       if (!firebaseDb || !isCloudOnline) return;
       try {
         const docRef = firebaseDb.collection('fairshare_groups').doc(group.id);
-        docRef.set({
+        const payload = {
           id: group.id,
           name: group.name,
           currency: group.currency || '₹',
-          members: group.members,
-          expenses: group.expenses,
+          members: group.members || [],
+          expenses: group.expenses || [],
           updatedAt: group.updatedAt || Date.now()
-        }, { merge: true }).catch(err => {
+        };
+        docRef.set(payload, { merge: true }).catch(err => {
           console.warn('Cloud sync write failed:', err);
         });
       } catch (e) {
@@ -1237,33 +1334,30 @@
       updateSyncIndicator();
     }
 
-    // --- URL PARAMETERS / SHAREABLE LINKS ---
+    // --- URL PARAMETERS / SHAREABLE LINKS (?group=XYZ) ---
     function checkUrlParameters() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        let targetCode = urlParams.get('room') || urlParams.get('group');
+        let targetCode = urlParams.get('group') || urlParams.get('room');
 
         if (!targetCode && window.location.hash) {
           const hashClean = window.location.hash.replace('#', '').trim();
-          if (hashClean.length >= 3) {
+          if (hashClean.length >= 3 && !hashClean.includes('/')) {
             targetCode = hashClean;
           }
         }
 
         if (targetCode) {
           targetCode = targetCode.toUpperCase().trim();
-          if (!appState.groups[targetCode]) {
-            appState.groups[targetCode] = {
-              id: targetCode,
-              name: `Shared Group (${targetCode})`,
-              currency: '₹',
-              members: ['Rahul', 'Amit', 'Pooja'],
-              expenses: [],
-              updatedAt: Date.now()
-            };
-          }
           appState.currentGroupId = targetCode;
-          saveLocalStateOnly();
+          updateUrlParameter(targetCode);
+          const savedUser = localStorage.getItem('fairshare_user_' + targetCode);
+          if (savedUser) {
+            appState.currentUser = savedUser;
+          } else {
+            appState.currentUser = null;
+            appState.hasPromptedIdentity = false;
+          }
         }
       } catch (e) {
         console.error('Error parsing URL params:', e);
@@ -1273,8 +1367,9 @@
     function updateUrlParameter(roomId) {
       try {
         const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('room', roomId);
-        window.history.replaceState({ room: roomId }, '', newUrl.toString());
+        newUrl.searchParams.set('group', roomId);
+        newUrl.searchParams.delete('room');
+        window.history.replaceState({ group: roomId }, '', newUrl.toString());
       } catch (e) {
         window.location.hash = roomId;
       }
@@ -1283,10 +1378,11 @@
     function getShareableGroupUrl(roomId = appState.currentGroupId) {
       try {
         const url = new URL(window.location.href);
-        url.searchParams.set('room', roomId);
+        url.searchParams.set('group', roomId);
+        url.searchParams.delete('room');
         return url.toString();
       } catch (e) {
-        return window.location.origin + window.location.pathname + '?room=' + roomId;
+        return window.location.origin + window.location.pathname + '?group=' + roomId;
       }
     }
 
@@ -1453,6 +1549,14 @@
         group.members[memberIdx] = newName;
       }
 
+      // If active user was renamed, update identity
+      if (appState.currentUser === oldName) {
+        appState.currentUser = newName;
+        try {
+          localStorage.setItem('fairshare_user_' + group.id, newName);
+        } catch (e) {}
+      }
+
       // 2. Cascade rename across all expense histories
       let updatedExpensesCount = 0;
       group.expenses.forEach(exp => {
@@ -1500,10 +1604,149 @@
           .filter(exp => exp.splitAmong.length > 0);
       }
 
+      if (appState.currentUser === name) {
+        appState.currentUser = null;
+        try {
+          localStorage.removeItem('fairshare_user_' + group.id);
+        } catch (e) {}
+      }
+
       group.members = group.members.filter(m => m !== name);
       commitStateChanges(`Removed member ${name}`);
       renderApp();
       showToast(`Removed ${name}`, 'info');
+    }
+
+    // --- MEMBER PRESENCE & IDENTIFICATION ("WHO ARE YOU?") ---
+    function openUserIdentifyModal() {
+      const group = getCurrentGroup();
+      const grid = document.getElementById('userIdentifyMembersGrid');
+      const subtitle = document.getElementById('userIdentifyModalSubtitle');
+
+      if (subtitle) {
+        subtitle.textContent = `Group: ${group.name} (${group.id})`;
+      }
+
+      if (grid) {
+        if (!group.members || group.members.length === 0) {
+          grid.innerHTML = `<p class="col-span-2 text-xs text-slate-400 py-3 text-center">Loading group members...</p>`;
+        } else {
+          grid.innerHTML = group.members.map(member => {
+            const isSelected = appState.currentUser === member;
+            const initials = getInitials(member);
+            const grad = getAvatarGradient(member);
+
+            return `
+              <button type="button" onclick="selectCurrentUser('${member.replace(/'/g, "\\'")}')" class="flex items-center gap-2 p-2.5 rounded-xl border text-left transition select-none ${
+                isSelected
+                  ? 'bg-indigo-50 dark:bg-indigo-950/80 border-indigo-500 ring-2 ring-indigo-500/30'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500'
+              }">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-tr ${grad} text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                  ${initials}
+                </div>
+                <div class="truncate flex-1">
+                  <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate">${member}</span>
+                  ${isSelected ? '<span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">Current (You)</span>' : '<span class="text-[10px] text-slate-400">Select</span>'}
+                </div>
+              </button>
+            `;
+          }).join('');
+        }
+      }
+
+      const modal = document.getElementById('userIdentifyModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          modal.classList.remove('opacity-0');
+          modal.firstElementChild.classList.remove('scale-95');
+        });
+      }
+    }
+
+    function closeUserIdentifyModal() {
+      const modal = document.getElementById('userIdentifyModal');
+      if (modal) {
+        modal.classList.add('opacity-0');
+        modal.firstElementChild.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+      }
+    }
+
+    function selectCurrentUser(name) {
+      appState.currentUser = name;
+      appState.hasPromptedIdentity = true;
+      try {
+        localStorage.setItem('fairshare_user_' + appState.currentGroupId, name);
+      } catch (e) {}
+      saveLocalStateOnly();
+      updateCurrentUserUI();
+      closeUserIdentifyModal();
+      renderMembersList();
+      showToast(`You are now recording expenses as "${name}"`, 'success');
+    }
+
+    function handleJoinAsNewMember(e) {
+      e.preventDefault();
+      const input = document.getElementById('joinNewMemberNameInput');
+      const name = input.value.trim();
+      const group = getCurrentGroup();
+
+      if (!name) {
+        showToast('Please enter your name', 'warning');
+        return;
+      }
+
+      const existing = group.members.find(m => m.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        selectCurrentUser(existing);
+        input.value = '';
+        return;
+      }
+
+      group.members.push(name);
+      input.value = '';
+      commitStateChanges(`Added member ${name}`);
+      selectCurrentUser(name);
+      renderApp();
+      showToast(`Welcome ${name}! Added to group.`, 'success');
+    }
+
+    function checkUserIdentityPrompt() {
+      if (appState.hasPromptedIdentity) return;
+      const group = getCurrentGroup();
+      if (!group || group.isPlaceholder || !group.members || group.members.length === 0) return;
+
+      const savedUser = localStorage.getItem('fairshare_user_' + group.id);
+      if (savedUser && group.members.includes(savedUser)) {
+        appState.currentUser = savedUser;
+        updateCurrentUserUI();
+        return;
+      }
+
+      // If no valid identity found for this group, show the prompt modal after a short delay
+      appState.hasPromptedIdentity = true;
+      setTimeout(() => {
+        if (!appState.currentUser || !group.members.includes(appState.currentUser)) {
+          openUserIdentifyModal();
+        }
+      }, 400);
+    }
+
+    function updateCurrentUserUI() {
+      const badgeBtn = document.getElementById('currentUserBadgeBtn');
+      const textEl = document.getElementById('currentUserNameText');
+      if (!badgeBtn || !textEl) return;
+
+      const group = getCurrentGroup();
+      if (appState.currentUser && group.members && group.members.includes(appState.currentUser)) {
+        textEl.textContent = appState.currentUser;
+        badgeBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/80 dark:hover:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 transition shadow-sm';
+      } else {
+        textEl.textContent = 'Who are you?';
+        badgeBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800 transition';
+      }
     }
 
     // --- SMART CALCULATION ENGINE & GREEDY SETTLEMENT ---
@@ -1644,6 +1887,9 @@
         form.reset();
         document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
         selectAllSplitters(true);
+        if (appState.currentUser && group.members.includes(appState.currentUser)) {
+          payerSelect.value = appState.currentUser;
+        }
       }
 
       updateSplitLivePreview();
@@ -2030,10 +2276,16 @@
         currency: appState.currency || '₹',
         members: members,
         expenses: [],
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        isPlaceholder: false
       };
 
       appState.currentGroupId = newId;
+      appState.currentUser = members[0];
+      appState.hasPromptedIdentity = true;
+      try {
+        localStorage.setItem('fairshare_user_' + newId, members[0]);
+      } catch (e) {}
       updateUrlParameter(newId);
       commitStateChanges(`Created group ${name}`);
       listenToActiveGroupInCloud();
@@ -2057,30 +2309,39 @@
           id: code,
           name: `Room ${code}`,
           currency: appState.currency || '₹',
-          members: ['Person A', 'Person B', 'Person C'],
+          members: [],
           expenses: [],
-          updatedAt: Date.now()
+          updatedAt: 0,
+          isPlaceholder: true
         };
       }
 
       appState.currentGroupId = code;
+      const savedUser = localStorage.getItem('fairshare_user_' + code);
+      appState.currentUser = savedUser || null;
+      appState.hasPromptedIdentity = false;
       updateUrlParameter(code);
       saveLocalStateOnly();
       listenToActiveGroupInCloud();
       closeGroupSwitchModal();
       renderApp();
       updateCalculatorDisplay();
+      checkUserIdentityPrompt();
       showToast(`Switched to Room ${code}!`, 'success');
     }
 
     function switchToGroup(groupId) {
       if (appState.groups[groupId]) {
         appState.currentGroupId = groupId;
+        const savedUser = localStorage.getItem('fairshare_user_' + groupId);
+        appState.currentUser = savedUser || null;
+        appState.hasPromptedIdentity = false;
         updateUrlParameter(groupId);
         saveLocalStateOnly();
         listenToActiveGroupInCloud();
         renderApp();
         updateCalculatorDisplay();
+        checkUserIdentityPrompt();
         showToast(`Opened "${appState.groups[groupId].name}"`, 'info');
       }
     }
@@ -2521,14 +2782,26 @@
         const initials = getInitials(member);
         const grad = getAvatarGradient(member);
         const isDeletable = group.members.length > 3;
+        const isYou = appState.currentUser === member;
 
         return `
-          <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition">
+          <div class="flex items-center justify-between p-2.5 rounded-2xl ${
+            isYou
+              ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800/70 shadow-sm'
+              : 'bg-slate-50 dark:bg-slate-800/60 border-slate-100 dark:border-slate-800'
+          } border hover:border-indigo-300 dark:hover:border-indigo-700 transition">
             <div class="flex items-center gap-2.5 min-w-0">
               <div class="w-8 h-8 rounded-xl bg-gradient-to-tr ${grad} text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
                 ${initials}
               </div>
-              <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate">${member}</span>
+              <div class="flex items-center gap-1.5 truncate">
+                <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate">${member}</span>
+                ${
+                  isYou
+                    ? '<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shrink-0">You</span>'
+                    : `<button onclick="selectCurrentUser('${member.replace(/'/g, "\\'")}')" class="text-[10px] font-semibold text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline shrink-0" title="Switch identity to ${member}">(Select)</button>`
+                }
+              </div>
             </div>
             
             <div class="flex items-center gap-1">
@@ -2838,6 +3111,7 @@
       renderRecentGroups();
       renderSettlementPlan(transactions);
       renderExpensesList();
+      updateCurrentUserUI();
 
       document.getElementById('currencySelector').value = group.currency || appState.currency;
       document.getElementById('amountCurrencyPrefix').textContent = group.currency || appState.currency;
@@ -2851,6 +3125,7 @@
       applyDarkMode();
       initFirebaseCloud();
       renderApp();
+      checkUserIdentityPrompt();
     });
   </script>
 </body>
