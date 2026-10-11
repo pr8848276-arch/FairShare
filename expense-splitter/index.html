@@ -415,7 +415,7 @@
                 <h2 class="text-base font-bold text-slate-900 dark:text-white">Expense History</h2>
                 <span id="badgeExpenseCount" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300">0 bills</span>
               </div>
-              <p class="text-xs text-slate-500">Live synchronized across all member phones</p>
+              <p class="text-xs text-slate-500">Live synchronized across all member phones • Permanent audit log</p>
             </div>
 
             <!-- Search & Filters -->
@@ -1818,16 +1818,7 @@
     }
 
     function deleteSettlementExpense(id) {
-      const group = getCurrentGroup();
-      const exp = group.expenses.find(e => e.id === id);
-      if (!exp) return;
-
-      if (confirm(`Revert settlement payment: "${exp.title}" (${formatMoney(exp.amount)})?\n\nThis will restore the previous pending dues.`)) {
-        group.expenses = group.expenses.filter(e => e.id !== id);
-        commitStateChanges('Reverted settlement payment');
-        renderApp();
-        showToast('Settlement payment reverted', 'info');
-      }
+      showToast('Settlement records are permanent audit logs and cannot be deleted.', 'info');
     }
 
     // Deprecate destructive group wipe
@@ -1957,18 +1948,8 @@
       );
 
       if (involvedExpenses.length > 0) {
-        const proceed = confirm(
-          `"${name}" is part of ${involvedExpenses.length} expense(s). Removing them will update splits or remove their bills. Continue?`
-        );
-        if (!proceed) return;
-
-        group.expenses = group.expenses
-          .filter(exp => exp.paidBy !== name)
-          .map(exp => ({
-            ...exp,
-            splitAmong: (exp.splitAmong || []).filter(p => p !== name)
-          }))
-          .filter(exp => exp.splitAmong.length > 0);
+        showToast(`Cannot remove "${name}": they have ${involvedExpenses.length} expense record(s). Financial audit history is permanent and expenses cannot be deleted.`, 'warning');
+        return;
       }
 
       if (appState.currentUser === name) {
@@ -2357,16 +2338,7 @@
     }
 
     function deleteExpense(id) {
-      const group = getCurrentGroup();
-      const exp = group.expenses.find(e => e.id === id);
-      if (!exp) return;
-
-      if (confirm(`Delete "${exp.title}" (${formatMoney(exp.amount)})?`)) {
-        group.expenses = group.expenses.filter(e => e.id !== id);
-        commitStateChanges('Deleted expense');
-        renderApp();
-        showToast(`Deleted "${exp.title}"`, 'info');
-      }
+      showToast('Expenses cannot be deleted. All records are permanently preserved in the financial audit log.', 'info');
     }
 
     function editExpense(id) {
@@ -3500,14 +3472,10 @@
                   <div class="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-300">
                     ${formatMoney(exp.amount)}
                   </div>
-                  <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                    Settlement Transfer
+                  <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 sm:justify-end">
+                    <span>Payment Settled</span>
+                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                   </div>
-                </div>
-                <div class="flex items-center gap-1">
-                  <button onclick="deleteSettlementExpense('${exp.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition" title="Revert this settlement payment">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  </button>
                 </div>
               </div>
             </div>
@@ -3564,11 +3532,8 @@
               </div>
 
               <div class="flex items-center gap-1">
-                <button onclick="editExpense('${exp.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 transition" title="Edit expense">
+                <button onclick="editExpense('${exp.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 transition" title="Edit expense details">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                </button>
-                <button onclick="deleteExpense('${exp.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition" title="Delete expense">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
             </div>
