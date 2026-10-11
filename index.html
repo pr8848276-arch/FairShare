@@ -213,8 +213,9 @@
           <span>Switch / New</span>
         </button>
 
-        <button onclick="resetGroupPrompt()" class="text-xs font-medium px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition" title="Clear all expenses in this group">
-          🗑️ Clear Bills
+        <button onclick="openSettleShareModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/70 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-700 transition shadow-sm" title="Settle individual balances without deleting bills">
+          <span>🤝</span>
+          <span>Settle Up</span>
         </button>
       </div>
     </section>
@@ -323,7 +324,7 @@
 
           <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs text-slate-400">
             <span>Minimum 3 members required</span>
-            <button onclick="resetGroupPrompt()" class="text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:underline">Clear & Reset</button>
+            <button onclick="openSettleShareModal()" class="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-semibold hover:underline">🤝 Settle Balances</button>
           </div>
         </div>
 
@@ -433,6 +434,7 @@
                 <option value="Stay">🏨 Stay</option>
                 <option value="Groceries">🛒 Groceries</option>
                 <option value="Entertainment">🎟️ Fun</option>
+                <option value="Settlement">🤝 Settlements & Payments</option>
                 <option value="Other">📦 Other</option>
               </select>
 
@@ -622,6 +624,85 @@
             Browse as Guest
           </button>
         </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INDIVIDUAL SETTLEMENT MODAL ("SETTLE MY SHARE") -->
+  <div id="settleShareModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shadow-sm">
+            🤝
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Individual Settlement</h3>
+            <p id="settleModalSubtitle" class="text-xs text-slate-500">Settle personal shares without deleting group bills</p>
+          </div>
+        </div>
+        <button onclick="closeSettleShareModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Active Profile Bar -->
+      <div class="mt-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-500">Settling as:</span>
+          <span id="settleModalActiveUserText" class="font-bold text-slate-900 dark:text-white">Rahul</span>
+        </div>
+        <button type="button" onclick="closeSettleShareModal(); openUserIdentifyModal();" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
+          Switch Profile ▾
+        </button>
+      </div>
+
+      <!-- Dynamic Settlement Cards Container -->
+      <div id="settleModalContent" class="mt-4 space-y-3">
+        <!-- Populated dynamically via JS -->
+      </div>
+
+      <!-- Custom 1-to-1 Settlement Option (Collapsible) -->
+      <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="toggleCustomSettlementForm()" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1">
+          <span>+ Record payment between any two members</span>
+        </button>
+
+        <form id="customSettlementForm" onsubmit="handleCustomSettlementSubmit(event)" class="mt-3 space-y-3 hidden bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-200/70 dark:border-slate-700/70">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase">Who Paid (Debtor)</label>
+              <select id="customSettlePayer" required class="w-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase">Paid To (Creditor)</label>
+              <select id="customSettleReceiver" required class="w-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase">Amount Paid</label>
+            <div class="relative">
+              <span id="customSettleCurrPrefix" class="absolute left-3 top-2 text-xs font-bold text-slate-400">₹</span>
+              <input type="number" id="customSettleAmount" step="0.01" min="0.01" required placeholder="0.00" class="w-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-7 pr-3 py-2 text-slate-900 dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button type="button" onclick="toggleCustomSettlementForm()" class="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700">Cancel</button>
+            <button type="submit" class="px-3.5 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition">
+              Record Payment
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          ✨ Settle up records a direct payment transaction in the group ledger. Group expenses, split histories, and other members' balances are preserved.
+        </p>
       </div>
 
     </div>
@@ -1059,6 +1140,7 @@
       'Stay': { icon: '🏨', label: 'Hotel / Stay', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300' },
       'Groceries': { icon: '🛒', label: 'Groceries & Snacks', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300' },
       'Entertainment': { icon: '🎟️', label: 'Fun & Events', color: 'bg-pink-100 text-pink-800 dark:bg-pink-950/70 dark:text-pink-300' },
+      'Settlement': { icon: '🤝', label: 'Settlement / Payment', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-700' },
       'Other': { icon: '📦', label: 'Other', color: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300' }
     };
 
@@ -1447,25 +1529,310 @@
       showToast(`Group currency changed to ${newCurr}`, 'info');
     }
 
-    // --- CLEAR / RESET GROUP EXPENSES ---
-    function clearAllExpenses() {
+    // --- INDIVIDUAL SETTLEMENT ENGINE & MODAL (NO EXPENSE WIPEOUT) ---
+    function openSettleShareModal(focusMember = null) {
       const group = getCurrentGroup();
-      group.expenses = [];
-      commitStateChanges('Cleared all expenses');
-      renderApp();
-      updateCalculatorDisplay();
-      showToast('All bills cleared', 'info');
-    }
-
-    function resetGroupPrompt() {
-      const group = getCurrentGroup();
-      if (!group.expenses || group.expenses.length === 0) {
-        showToast('No expenses recorded to clear in this group', 'info');
+      if (!group || !group.members || group.members.length === 0) {
+        showToast('No group members to settle with', 'warning');
         return;
       }
-      if (confirm('Clear all recorded expenses for this group?')) {
-        clearAllExpenses();
+
+      // If user hasn't identified themselves yet, prompt them first
+      if (!appState.currentUser || !group.members.includes(appState.currentUser)) {
+        if (focusMember && group.members.includes(focusMember)) {
+          selectCurrentUser(focusMember);
+        } else {
+          showToast('Please identify who you are before settling', 'info');
+          openUserIdentifyModal();
+          return;
+        }
       }
+
+      const activeUser = appState.currentUser;
+      const balances = calculateBalances();
+      const transactions = minimizeTransactions(balances);
+
+      // Update Active User text in modal
+      const activeTextEl = document.getElementById('settleModalActiveUserText');
+      if (activeTextEl) activeTextEl.textContent = activeUser;
+
+      const modalSubtitle = document.getElementById('settleModalSubtitle');
+      if (modalSubtitle) {
+        modalSubtitle.textContent = `Group: ${group.name} (${group.id})`;
+      }
+
+      // Populate custom settlement select dropdowns
+      const customPayer = document.getElementById('customSettlePayer');
+      const customReceiver = document.getElementById('customSettleReceiver');
+      const currPrefix = document.getElementById('customSettleCurrPrefix');
+      if (currPrefix) currPrefix.textContent = group.currency || appState.currency || '₹';
+
+      if (customPayer && customReceiver) {
+        customPayer.innerHTML = group.members.map(m => `
+          <option value="${m}" ${m === activeUser ? 'selected' : ''}>${m} ${m === activeUser ? '(You)' : ''}</option>
+        `).join('');
+
+        const defaultReceiver = group.members.find(m => m !== activeUser) || group.members[0];
+        customReceiver.innerHTML = group.members.map(m => `
+          <option value="${m}" ${m === defaultReceiver ? 'selected' : ''}>${m}</option>
+        `).join('');
+      }
+
+      // Render Active User's specific settlement cards
+      const container = document.getElementById('settleModalContent');
+      const myDebts = transactions.filter(t => t.from === activeUser);
+      const myCredits = transactions.filter(t => t.to === activeUser);
+      const myBalance = balances[activeUser] || { paid: 0, share: 0, net: 0 };
+      const myNet = Math.round(myBalance.net * 100) / 100;
+      const EPSILON = 0.01;
+
+      let html = '';
+
+      if (Math.abs(myNet) < EPSILON && myDebts.length === 0) {
+        html += `
+          <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-center">
+            <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-2 text-lg">
+              ✓
+            </div>
+            <h4 class="text-sm font-bold text-emerald-900 dark:text-emerald-200">You are All Cleared Up!</h4>
+            <p class="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+              Your net balance is ₹0.00. You do not owe any money to anyone in this group.
+            </p>
+          </div>
+        `;
+      } else if (myDebts.length > 0) {
+        const totalOwed = myDebts.reduce((sum, d) => sum + d.amount, 0);
+        html += `
+          <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 mb-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider block">Your Total Pending Dues</span>
+                <span class="text-lg font-extrabold text-rose-900 dark:text-rose-100">${formatMoney(totalOwed)}</span>
+              </div>
+              ${myDebts.length > 1 ? `
+                <button type="button" onclick="settleAllMyDebts()" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">
+                  ⚡ Settle All (${formatMoney(totalOwed)})
+                </button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="space-y-2">
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Pay Your Individual Share:
+            </p>
+            ${myDebts.map(debt => `
+              <div class="p-3 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 shadow-sm">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-slate-100">
+                    You owe <span class="text-indigo-600 dark:text-indigo-400 font-semibold">${debt.to}</span>
+                  </div>
+                  <div class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">
+                    ${formatMoney(debt.amount)}
+                  </div>
+                </div>
+                <button type="button" onclick="recordIndividualSettlement('${activeUser.replace(/'/g, "\\'")}', '${debt.to.replace(/'/g, "\\'")}', ${debt.amount})" class="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl shadow-sm transition flex items-center gap-1.5 shrink-0">
+                  <span>✓</span>
+                  <span>Pay ${debt.to}</span>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      if (myCredits.length > 0) {
+        html += `
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Members Who Owe You:
+            </p>
+            ${myCredits.map(credit => `
+              <div class="p-3 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 shadow-sm">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 dark:text-slate-100">
+                    <span class="text-indigo-600 dark:text-indigo-400 font-semibold">${credit.from}</span> owes you
+                  </div>
+                  <div class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    ${formatMoney(credit.amount)}
+                  </div>
+                </div>
+                <button type="button" onclick="recordIndividualSettlement('${credit.from.replace(/'/g, "\\'")}', '${activeUser.replace(/'/g, "\\'")}', ${credit.amount})" class="px-3 py-1.5 text-xs font-bold bg-indigo-50 dark:bg-indigo-950 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl transition flex items-center gap-1 shrink-0">
+                  <span>✓</span>
+                  <span>Confirm Received</span>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      // Check if there are other members' unsettled debts in the group
+      const otherDebts = transactions.filter(t => t.from !== activeUser && t.to !== activeUser);
+      if (otherDebts.length > 0) {
+        html += `
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              Other Group Dues (Kept Intact):
+            </p>
+            <div class="space-y-1.5">
+              ${otherDebts.map(od => `
+                <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                  <span>${od.from} owes ${od.to}</span>
+                  <span class="font-mono font-bold text-slate-800 dark:text-slate-200">${formatMoney(od.amount)}</span>
+                </div>
+              `).join('')}
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1.5">
+              🔒 Other members will settle their own shares from their phone.
+            </p>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+
+      // Open Modal
+      const modal = document.getElementById('settleShareModal');
+      modal.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0');
+        modal.firstElementChild.classList.remove('scale-95');
+      });
+    }
+
+    function closeSettleShareModal() {
+      const modal = document.getElementById('settleShareModal');
+      if (modal) {
+        modal.classList.add('opacity-0');
+        modal.firstElementChild.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+      }
+    }
+
+    function toggleCustomSettlementForm() {
+      const form = document.getElementById('customSettlementForm');
+      if (form) form.classList.toggle('hidden');
+    }
+
+    function handleCustomSettlementSubmit(e) {
+      e.preventDefault();
+      const payer = document.getElementById('customSettlePayer').value;
+      const receiver = document.getElementById('customSettleReceiver').value;
+      const amount = parseFloat(document.getElementById('customSettleAmount').value);
+
+      if (payer === receiver) {
+        showToast('Payer and receiver cannot be the same person', 'warning');
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        showToast('Please enter a valid payment amount', 'warning');
+        return;
+      }
+
+      recordIndividualSettlement(payer, receiver, amount);
+      document.getElementById('customSettleAmount').value = '';
+      toggleCustomSettlementForm();
+      closeSettleShareModal();
+    }
+
+    function recordIndividualSettlement(from, to, amount) {
+      const group = getCurrentGroup();
+      const currentUser = appState.currentUser;
+
+      // Personal Clear / Settle Permission:
+      // If active user is set and is neither payer nor receiver, ask for confirmation
+      if (currentUser && currentUser !== from && currentUser !== to) {
+        const proceed = confirm(`⚠️ You are currently logged in as "${currentUser}".\nThis transfer is between "${from}" and "${to}".\n\nAre you sure you want to record this settlement payment on their behalf?`);
+        if (!proceed) return;
+      } else {
+        if (!confirm(`Record settlement payment: "${from} paid ${formatMoney(amount)} to ${to}"?\n\nThis will clear ${from}'s dues while keeping all other group expenses and members' balances intact.`)) {
+          return;
+        }
+      }
+
+      const settlementExpense = {
+        id: 'settle_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        title: `${from} paid ${to} (Settled)`,
+        amount: Number(amount),
+        category: 'Settlement',
+        paidBy: from,
+        splitAmong: [to],
+        isSettlement: true,
+        date: new Date().toISOString().split('T')[0],
+        timestamp: Date.now()
+      };
+
+      group.expenses.unshift(settlementExpense);
+      commitStateChanges(`Settlement: ${from} paid ${to}`);
+      renderApp();
+      closeSettleShareModal();
+      showToast(`🤝 Settled! ${from} paid ${formatMoney(amount)} to ${to}. Other balances preserved.`, 'success');
+    }
+
+    function settleAllMyDebts() {
+      const activeUser = appState.currentUser;
+      if (!activeUser) return;
+
+      const balances = calculateBalances();
+      const transactions = minimizeTransactions(balances);
+      const myDebts = transactions.filter(t => t.from === activeUser);
+
+      if (myDebts.length === 0) {
+        showToast('You have no pending debts to settle', 'info');
+        return;
+      }
+
+      const total = myDebts.reduce((sum, d) => sum + d.amount, 0);
+      if (!confirm(`Settle all ${myDebts.length} pending debts for a total of ${formatMoney(total)}?\n\nThis will record settlement payments to each creditor without touching any group bills.`)) {
+        return;
+      }
+
+      const group = getCurrentGroup();
+      const today = new Date().toISOString().split('T')[0];
+
+      myDebts.forEach(d => {
+        group.expenses.unshift({
+          id: 'settle_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          title: `${activeUser} paid ${d.to} (Settled)`,
+          amount: Number(d.amount),
+          category: 'Settlement',
+          paidBy: activeUser,
+          splitAmong: [d.to],
+          isSettlement: true,
+          date: today,
+          timestamp: Date.now()
+        });
+      });
+
+      commitStateChanges(`Settled all dues for ${activeUser}`);
+      renderApp();
+      closeSettleShareModal();
+      showToast(`🎉 All debts cleared for ${activeUser}! You are all settled up.`, 'success');
+    }
+
+    function promptUnauthorizedSettlement(from, to, amount) {
+      const currentUser = appState.currentUser;
+      if (confirm(`You are logged in as "${currentUser || 'Guest'}".\nOnly ${from} (debtor) or ${to} (creditor) should normally record this settlement.\n\nDo you want to record that "${from} paid ${formatMoney(amount)} to ${to}" now?`)) {
+        recordIndividualSettlement(from, to, amount);
+      }
+    }
+
+    function deleteSettlementExpense(id) {
+      const group = getCurrentGroup();
+      const exp = group.expenses.find(e => e.id === id);
+      if (!exp) return;
+
+      if (confirm(`Revert settlement payment: "${exp.title}" (${formatMoney(exp.amount)})?\n\nThis will restore the previous pending dues.`)) {
+        group.expenses = group.expenses.filter(e => e.id !== id);
+        commitStateChanges('Reverted settlement payment');
+        renderApp();
+        showToast('Settlement payment reverted', 'info');
+      }
+    }
+
+    // Deprecate destructive group wipe
+    function resetGroupPrompt() {
+      openSettleShareModal();
     }
 
     // --- MEMBER MANAGEMENT (ADD, EDIT/RENAME, REMOVE) ---
@@ -2011,23 +2378,7 @@
     }
 
     function recordQuickSettlement(from, to, amount) {
-      if (confirm(`Record settlement payment: "${from} paid ${formatMoney(amount)} to ${to}"?`)) {
-        const group = getCurrentGroup();
-        const settlementExpense = {
-          id: 'settle_' + Date.now(),
-          title: `Settlement: ${from} ➔ ${to}`,
-          amount: amount,
-          category: 'Other',
-          paidBy: from,
-          splitAmong: [to],
-          date: new Date().toISOString().split('T')[0]
-        };
-
-        group.expenses.unshift(settlementExpense);
-        commitStateChanges(`Settlement ${from} to ${to}`);
-        renderApp();
-        showToast(`Settled! ${from} paid ${to}`, 'success');
-      }
+      recordIndividualSettlement(from, to, amount);
     }
 
     // --- SEARCH & FILTER HANDLERS ---
@@ -2050,7 +2401,8 @@
       let text = `📊 *${group.name}* (${group.id}) — Expense Settlement Summary\n`;
       text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
-      const totalSpent = group.expenses.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+      const actualExpenses = group.expenses.filter(e => !e.isSettlement && e.category !== 'Settlement');
+      const totalSpent = actualExpenses.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
       text += `💰 Total Spend: ${formatMoney(totalSpent)}\n`;
       text += `👥 Members: ${group.members.join(', ')}\n\n`;
 
@@ -2747,7 +3099,8 @@
     // 2. Metrics Cards
     function renderMetrics(balances, transactions) {
       const group = getCurrentGroup();
-      const totalExpense = group.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const actualExpenses = group.expenses.filter(e => !e.isSettlement && e.category !== 'Settlement');
+      const totalExpense = actualExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
       const memberCount = group.members.length;
       const avgPerPerson = memberCount > 0 ? (totalExpense / memberCount) : 0;
 
@@ -2831,47 +3184,80 @@
         const net = Math.round(data.net * 100) / 100;
         const initials = getInitials(member);
         const grad = getAvatarGradient(member);
+        const isCurrent = appState.currentUser === member;
 
         let badgeHtml = '';
+        let actionBtnHtml = '';
 
         if (net > EPSILON) {
           badgeHtml = `
-            <span class="inline-flex items-center gap-1 font-bold text-xs px-2.5 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
-              <span>+</span>${formatMoney(net)}
-            </span>
+            <div class="text-right">
+              <span class="inline-flex items-center gap-1 font-bold text-xs px-2.5 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
+                <span>Receives</span> +${formatMoney(net)}
+              </span>
+              <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Creditor (Owed money)</div>
+            </div>
           `;
         } else if (net < -EPSILON) {
+          const owedAmt = Math.abs(net);
           badgeHtml = `
-            <span class="inline-flex items-center gap-1 font-bold text-xs px-2.5 py-1 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 shadow-sm">
-              <span>−</span>${formatMoney(Math.abs(net))}
-            </span>
+            <div class="text-right">
+              <span class="inline-flex items-center gap-1 font-bold text-xs px-2.5 py-1 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 shadow-sm">
+                <span>Owes</span> ${formatMoney(owedAmt)}
+              </span>
+              <div class="text-[10px] text-rose-600 dark:text-rose-400 font-semibold mt-0.5">Pending Dues</div>
+            </div>
           `;
+          if (isCurrent) {
+            actionBtnHtml = `
+              <button onclick="openSettleShareModal('${member.replace(/'/g, "\\'")}')" class="mt-2 w-full py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm">
+                <span>🤝</span> Settle My Share (${formatMoney(owedAmt)})
+              </button>
+            `;
+          } else {
+            actionBtnHtml = `
+              <button onclick="openSettleShareModal('${member.replace(/'/g, "\\'")}')" class="mt-2 w-full py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition flex items-center justify-center gap-1">
+                <span>🤝</span> Settle Share for ${member}
+              </button>
+            `;
+          }
         } else {
           badgeHtml = `
-            <span class="font-semibold text-xs px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-              ${formatMoney(0)}
-            </span>
+            <div class="text-right">
+              <span class="inline-flex items-center gap-1 font-bold text-xs px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-sm">
+                <span>✓</span> Settled / All Cleared
+              </span>
+              <div class="text-[10px] text-slate-400 font-medium mt-0.5">Net balance ₹0.00</div>
+            </div>
           `;
         }
 
         return `
-          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 hover:border-slate-200 dark:hover:border-slate-700 transition">
-            <div class="flex items-center justify-between">
+          <div class="p-3.5 rounded-2xl ${
+            isCurrent
+              ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/60 shadow-sm'
+              : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800/80'
+          } border hover:border-slate-200 dark:hover:border-slate-700 transition">
+            <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-8 h-8 rounded-xl bg-gradient-to-tr ${grad} text-white font-bold text-xs flex items-center justify-center shrink-0">
                   ${initials}
                 </div>
                 <div>
-                  <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate">${member}</h4>
+                  <div class="flex items-center gap-1.5">
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate">${member}</h4>
+                    ${isCurrent ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">You</span>' : ''}
+                  </div>
                   <div class="text-[11px] text-slate-400">
                     Paid: <span class="font-medium text-slate-600 dark:text-slate-300">${formatMoney(data.paid)}</span> · Share: <span class="font-medium text-slate-600 dark:text-slate-300">${formatMoney(data.share)}</span>
                   </div>
                 </div>
               </div>
-              <div class="text-right shrink-0">
+              <div class="shrink-0">
                 ${badgeHtml}
               </div>
             </div>
+            ${actionBtnHtml}
           </div>
         `;
       }).join('');
@@ -2929,6 +3315,44 @@
             const fromGrad = getAvatarGradient(tx.from);
             const toGrad = getAvatarGradient(tx.to);
 
+            const isPayer = appState.currentUser === tx.from;
+            const isReceiver = appState.currentUser === tx.to;
+            const isGuest = !appState.currentUser;
+
+            let settleBtnHtml = '';
+            if (isPayer) {
+              settleBtnHtml = `
+                <button onclick="recordIndividualSettlement('${tx.from.replace(/'/g, "\\'")}', '${tx.to.replace(/'/g, "\\'")}', ${tx.amount})" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/30 transition flex items-center gap-1 active:scale-95">
+                  <span>✓</span>
+                  <span>Pay My Share (${formatMoney(tx.amount)})</span>
+                </button>
+              `;
+            } else if (isReceiver) {
+              settleBtnHtml = `
+                <button onclick="recordIndividualSettlement('${tx.from.replace(/'/g, "\\'")}', '${tx.to.replace(/'/g, "\\'")}', ${tx.amount})" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white shadow-md shadow-indigo-500/30 transition flex items-center gap-1 active:scale-95">
+                  <span>✓</span>
+                  <span>Confirm Received</span>
+                </button>
+              `;
+            } else if (isGuest) {
+              settleBtnHtml = `
+                <button onclick="promptUnauthorizedSettlement('${tx.from.replace(/'/g, "\\'")}', '${tx.to.replace(/'/g, "\\'")}', ${tx.amount})" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white transition">
+                  Settle Transfer
+                </button>
+              `;
+            } else {
+              settleBtnHtml = `
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] text-amber-200 bg-amber-400/15 border border-amber-400/25 px-2 py-0.5 rounded-md flex items-center gap-1" title="Pending transfer between ${tx.from} and ${tx.to}. Only they can clear this debt.">
+                    <span>⏳</span> Pending
+                  </span>
+                  <button onclick="promptUnauthorizedSettlement('${tx.from.replace(/'/g, "\\'")}', '${tx.to.replace(/'/g, "\\'")}', ${tx.amount})" class="text-[10px] text-indigo-200 hover:text-white underline p-0.5" title="Record on their behalf">
+                    Settle
+                  </button>
+                </div>
+              `;
+            }
+
             return `
               <div class="p-3.5 sm:p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md transition-all flex flex-col justify-between gap-3 group">
                 <div class="flex items-center justify-between gap-2">
@@ -2948,7 +3372,7 @@
                       ${fromInitials}
                     </div>
                     <div class="truncate">
-                      <div class="text-xs font-bold text-white truncate">${tx.from}</div>
+                      <div class="text-xs font-bold text-white truncate">${tx.from} ${isPayer ? '(You)' : ''}</div>
                       <div class="text-[10px] text-rose-300 font-medium">Owes</div>
                     </div>
                   </div>
@@ -2961,7 +3385,7 @@
                   <!-- Receiver (Creditor) -->
                   <div class="flex items-center gap-2 min-w-0 justify-end text-right">
                     <div class="truncate">
-                      <div class="text-xs font-bold text-white truncate">${tx.to}</div>
+                      <div class="text-xs font-bold text-white truncate">${tx.to} ${isReceiver ? '(You)' : ''}</div>
                       <div class="text-[10px] text-emerald-300 font-medium">Receives</div>
                     </div>
                     <div class="w-7 h-7 rounded-xl bg-gradient-to-tr ${toGrad} text-white text-[11px] font-bold flex items-center justify-center shrink-0">
@@ -2970,14 +3394,14 @@
                   </div>
                 </div>
 
-                <!-- Summary Sentence & Mark Settled -->
-                <div class="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
-                  <p class="text-indigo-100 text-[11px]">
+                <!-- Summary Sentence & Action -->
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between text-xs gap-2">
+                  <p class="text-indigo-100 text-[11px] truncate">
                     <span class="font-bold text-white">${tx.from}</span> pays <span class="font-bold text-white">${tx.to}</span>
                   </p>
-                  <button onclick="recordQuickSettlement('${tx.from.replace(/'/g, "\\'")}', '${tx.to.replace(/'/g, "\\'")}', ${tx.amount})" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/25 hover:bg-emerald-500/40 text-emerald-200 border border-emerald-400/40 transition">
-                    Mark Settled ✓
-                  </button>
+                  <div class="shrink-0">
+                    ${settleBtnHtml}
+                  </div>
                 </div>
               </div>
             `;
@@ -3005,7 +3429,9 @@
         );
       }
 
-      countBadge.textContent = `${filtered.length} of ${group.expenses.length} bills`;
+      const actualCount = group.expenses.filter(e => !e.isSettlement && e.category !== 'Settlement').length;
+      const settleCount = group.expenses.length - actualCount;
+      countBadge.textContent = `${filtered.length} items (${actualCount} bills${settleCount > 0 ? `, ${settleCount} settled` : ''})`;
 
       if (filtered.length === 0) {
         if (group.expenses.length === 0) {
@@ -3034,6 +3460,60 @@
       }
 
       container.innerHTML = filtered.map(exp => {
+        const isSettlement = exp.isSettlement || exp.category === 'Settlement';
+        if (isSettlement) {
+          const recipient = (Array.isArray(exp.splitAmong) && exp.splitAmong.length > 0) ? exp.splitAmong[0] : 'Member';
+          const payerGrad = getAvatarGradient(exp.paidBy);
+          const payerInitials = getInitials(exp.paidBy);
+          const recGrad = getAvatarGradient(recipient);
+          const recInitials = getInitials(recipient);
+
+          return `
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/70 hover:border-emerald-300 dark:hover:border-emerald-600 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
+              <div class="flex items-start sm:items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-lg shrink-0 shadow-sm border border-emerald-200 dark:border-emerald-700">
+                  🤝
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">${exp.paidBy} paid ${recipient} (Settled)</h4>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700">
+                      Payment Settled ✓
+                    </span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-2 flex-wrap text-[11px] text-slate-500 dark:text-slate-400">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-4 h-4 rounded-full bg-gradient-to-tr ${payerGrad} text-white text-[8px] font-bold inline-flex items-center justify-center">${payerInitials}</span>
+                      <span class="font-bold text-slate-700 dark:text-slate-200">${exp.paidBy}</span>
+                      <span>➔</span>
+                      <span class="w-4 h-4 rounded-full bg-gradient-to-tr ${recGrad} text-white text-[8px] font-bold inline-flex items-center justify-center">${recInitials}</span>
+                      <span class="font-bold text-slate-700 dark:text-slate-200">${recipient}</span>
+                    </div>
+                    <span>•</span>
+                    <span>Individual Debt Settled</span>
+                    ${exp.date ? `<span>•</span><span>${exp.date}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-emerald-100 dark:border-emerald-900/50">
+                <div class="text-left sm:text-right">
+                  <div class="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-300">
+                    ${formatMoney(exp.amount)}
+                  </div>
+                  <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    Settlement Transfer
+                  </div>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button onclick="deleteSettlementExpense('${exp.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition" title="Revert this settlement payment">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
         const catConfig = CATEGORIES[exp.category] || CATEGORIES['Other'];
         const splitCount = exp.splitAmong ? exp.splitAmong.length : group.members.length;
         const payerGrad = getAvatarGradient(exp.paidBy);
