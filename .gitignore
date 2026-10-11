@@ -1,0 +1,19 @@
+# Compiled binaries and executables
+*.exe
+*.o
+*.obj
+*.out
+
+# C++ practice folders
+If-Else/
+PatternPrinting/
+basics/
+function/
+loops/
+
+# Unrelated projects & scratch files
+Ai image maker/
+calculater
+
+# IDE & Editor settings
+.vscode/
