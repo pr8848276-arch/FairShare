@@ -4,6 +4,10 @@
 *.obj
 *.out
 
+# Python cache
+__pycache__/
+*.pyc
+
 # C++ practice folders
 If-Else/
 PatternPrinting/
