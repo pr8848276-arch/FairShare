@@ -613,6 +613,18 @@
         </button>
       </div>
 
+      <!-- Inline Error Alert Box (Clean user feedback for domain/credential/popup issues) -->
+      <div id="authModalErrorBox" class="hidden my-3 p-3 rounded-2xl text-xs bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-900/80 text-rose-800 dark:text-rose-200 animate-pulse">
+        <div class="flex items-start gap-2">
+          <span class="text-base leading-none">⚠️</span>
+          <div class="flex-1">
+            <span id="authModalErrorTitle" class="font-bold block text-rose-900 dark:text-rose-100">Authentication Error</span>
+            <p id="authModalErrorMessage" class="text-[11px] mt-0.5 leading-relaxed text-rose-700 dark:text-rose-300"></p>
+          </div>
+          <button type="button" onclick="hideAuthModalError()" class="text-rose-400 hover:text-rose-700 p-0.5 font-bold">✕</button>
+        </div>
+      </div>
+
       <!-- Auth Method Selector Tabs -->
       <div class="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl my-4 text-xs font-semibold">
         <button type="button" onclick="switchAuthTab('google')" id="authTabGoogleBtn" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 font-bold shadow-sm transition">
@@ -629,14 +641,14 @@
           Fast and secure authentication using your Google account via Firebase Auth.
         </p>
 
-        <button type="button" onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold text-xs sm:text-sm shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-98">
-          <svg class="w-5 h-5" viewBox="0 0 24 24">
+        <button type="button" id="googleSignInBtn" onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold text-xs sm:text-sm shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-98">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span>Continue with Google</span>
+          <span id="googleSignInBtnText">Continue with Google</span>
         </button>
       </div>
 
@@ -655,23 +667,31 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address *</label>
           <input type="email" id="authEmailInput" required placeholder="you@domain.com" class="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password * (Min 6 characters)</label>
           <input type="password" id="authPasswordInput" required minlength="6" placeholder="••••••••" class="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <button type="submit" id="authEmailSubmitBtn" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-indigo-600/30 transition">
+        <button type="submit" id="authEmailSubmitBtn" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-indigo-600/30 transition">
           Sign In with Email
         </button>
       </form>
 
-      <!-- Instant Quick Test / Demo Accounts (No Firebase Auth Setup Blockers) -->
-      <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">⚡ Instant Demo / Test Sign-in:</span>
+      <!-- Continue as Guest Option (Bypass for Offline / Instant Preview) -->
+      <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <button type="button" onclick="continueAsGuest()" class="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 bg-slate-50 dark:bg-slate-800/80 hover:bg-indigo-50/50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs transition flex items-center justify-center gap-2">
+          <span>👤</span>
+          <span>Continue as Guest (Preview Offline)</span>
+        </button>
+      </div>
+
+      <!-- Instant Quick Test / Demo Accounts -->
+      <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">⚡ Quick 1-Click Demo Profiles:</span>
         <div class="grid grid-cols-3 gap-2">
           <button type="button" onclick="loginAsDemoUser('Rahul Sharma', 'rahul@fairshare.app', 'rahul@okhdfcbank')" class="p-2 rounded-xl bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-left border border-slate-200 dark:border-slate-700 transition">
             <span class="text-xs font-bold text-slate-900 dark:text-white block truncate">Rahul</span>
@@ -688,8 +708,27 @@
         </div>
       </div>
 
+      <!-- Developer Console / Firebase Setup Helper Info -->
+      <div class="mt-4 text-[11px] text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
+        <details>
+          <summary class="cursor-pointer font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 select-none">
+            <span>⚙️ Firebase Setup Help for Developers</span>
+          </summary>
+          <div class="mt-2 space-y-1 text-slate-600 dark:text-slate-400 pl-1 text-[11px] leading-relaxed">
+            <p>1. In <a href="https://console.firebase.google.com" target="_blank" class="underline text-indigo-500 font-semibold">Firebase Console</a> &gt; <strong>Authentication</strong> &gt; <strong>Sign-in method</strong>, enable <strong>Google</strong> and <strong>Email/Password</strong>.</p>
+            <p>2. In <strong>Authentication</strong> &gt; <strong>Settings</strong> &gt; <strong>Authorized domains</strong>, ensure these domains are listed:</p>
+            <ul class="list-disc list-inside font-mono text-[10px] text-slate-700 dark:text-slate-300 py-1 bg-slate-100 dark:bg-slate-900 px-2 rounded-lg">
+              <li>pr8848276-arch.github.io</li>
+              <li>localhost</li>
+              <li>127.0.0.1</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+
     </div>
   </div>
+
 
   <!-- AI RECEIPT & BILL SCANNER MODAL (CAMERA / UPLOAD OCR) -->
   <div id="receiptScannerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
@@ -1571,6 +1610,13 @@
           appState.authUser = JSON.parse(savedAuth);
         }
 
+        // Restore guest mode flag
+        try {
+          if (sessionStorage.getItem('fairshare_is_guest') === 'true') {
+            appState.isGuest = true;
+          }
+        } catch (e) {}
+
         const savedUser = localStorage.getItem('fairshare_user_' + appState.currentGroupId);
         if (savedUser) appState.currentUser = savedUser;
       } catch (e) {
@@ -1673,8 +1719,9 @@
       }
     }
 
-    // --- FEATURE 1: AUTHENTICATION (GOOGLE & EMAIL/PASSWORD & DEMO) ---
+    // --- FEATURE 1: ROBUST FIREBASE AUTHENTICATION (GOOGLE & EMAIL/PASSWORD & GUEST) ---
     function openAuthModal() {
+      hideAuthModalError();
       const modal = document.getElementById('authModal');
       modal.classList.remove('hidden');
       requestAnimationFrame(() => {
@@ -1690,8 +1737,25 @@
       setTimeout(() => modal.classList.add('hidden'), 200);
     }
 
+    function showAuthModalError(title, message) {
+      const box = document.getElementById('authModalErrorBox');
+      const tEl = document.getElementById('authModalErrorTitle');
+      const mEl = document.getElementById('authModalErrorMessage');
+      if (box && tEl && mEl) {
+        tEl.textContent = title;
+        mEl.textContent = message;
+        box.classList.remove('hidden');
+      }
+    }
+
+    function hideAuthModalError() {
+      const box = document.getElementById('authModalErrorBox');
+      if (box) box.classList.add('hidden');
+    }
+
     let isRegisterMode = false;
     function switchAuthTab(tab) {
+      hideAuthModalError();
       const googleTab = document.getElementById('authGoogleTabContent');
       const emailTab = document.getElementById('authEmailTabContent');
       const gBtn = document.getElementById('authTabGoogleBtn');
@@ -1711,6 +1775,7 @@
     }
 
     function toggleEmailAuthMode() {
+      hideAuthModalError();
       isRegisterMode = !isRegisterMode;
       const label = document.getElementById('emailAuthModeLabel');
       const toggleBtn = document.getElementById('emailAuthToggleBtn');
@@ -1730,84 +1795,287 @@
       }
     }
 
-    async function handleGoogleSignIn() {
-      try {
-        if (firebaseAuth) {
-          const provider = new firebase.auth.GoogleAuthProvider();
-          const result = await firebaseAuth.signInWithPopup(provider);
-          setAuthenticatedUser({
-            displayName: result.user.displayName || 'Google User',
-            email: result.user.email,
-            photoURL: result.user.photoURL,
-            uid: result.user.uid
-          });
-          closeAuthModal();
-          showToast(`Welcome back, ${result.user.displayName}!`, 'success');
-          return;
+    // Lazy / Safe Getter for Firebase Auth instance with LOCAL persistence
+    let authObserverAttached = false;
+    function getFirebaseAuth() {
+      if (firebaseAuth) return firebaseAuth;
+      if (typeof firebase !== 'undefined') {
+        try {
+          if (!firebase.apps.length) {
+            let config = DEFAULT_FIREBASE_CONFIG;
+            const savedConfigStr = localStorage.getItem(FB_CONFIG_KEY);
+            if (savedConfigStr) {
+              try {
+                const parsed = JSON.parse(savedConfigStr);
+                if (parsed && !parsed.disabled) config = parsed;
+              } catch (e) {}
+            }
+            firebase.initializeApp(config);
+          }
+          if (firebase.auth) {
+            firebaseAuth = firebase.auth();
+            firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => {
+              console.warn('[Firebase Auth] Persistence configuration notice:', err);
+            });
+            setupAuthStateObserver();
+          }
+        } catch (err) {
+          console.error('[Firebase Auth] Initialization exception:', err);
         }
-      } catch (err) {
-        console.warn('Firebase popup sign-in note (domain or sandbox):', err);
-        // Fallback for sandboxed preview domains or offline auth
-        loginAsDemoUser('Google User', 'user@gmail.com', 'user@okaxis');
-        closeAuthModal();
-        return;
       }
-      loginAsDemoUser('Google User', 'user@gmail.com', 'user@okaxis');
-      closeAuthModal();
+      return firebaseAuth;
     }
 
-    async function handleEmailAuthSubmit(e) {
-      e.preventDefault();
-      const email = document.getElementById('authEmailInput').value.trim();
-      const password = document.getElementById('authPasswordInput').value;
-      const displayName = document.getElementById('authDisplayNameInput').value.trim() || email.split('@')[0];
+    // Persistent Auth State Observer
+    function setupAuthStateObserver() {
+      if (authObserverAttached || !firebaseAuth) return;
+      authObserverAttached = true;
 
-      if (!email || !password) return;
-
-      try {
-        if (firebaseAuth) {
-          let userCred = null;
-          if (isRegisterMode) {
-            userCred = await firebaseAuth.createUserWithEmailAndPassword(email, password);
-            if (userCred.user && displayName) {
-              await userCred.user.updateProfile({ displayName: displayName });
-            }
-          } else {
-            userCred = await firebaseAuth.signInWithEmailAndPassword(email, password);
-          }
-          setAuthenticatedUser({
-            displayName: userCred.user.displayName || displayName,
-            email: userCred.user.email,
-            photoURL: userCred.user.photoURL,
-            uid: userCred.user.uid
-          });
+      firebaseAuth.onAuthStateChanged((user) => {
+        console.log('[Firebase Auth Observer] User state changed:', user ? `${user.email} (${user.uid})` : 'null (logged out)');
+        if (user) {
+          appState.authUser = {
+            displayName: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            photoURL: user.photoURL || null,
+            uid: user.uid
+          };
+          appState.isGuest = false;
+          saveLocalStateOnly();
+          renderAuthNav();
           closeAuthModal();
-          showToast(`Welcome ${displayName}!`, 'success');
-          return;
+
+          // Match or link with active group member
+          const group = getCurrentGroup();
+          const userDisplayName = appState.authUser.displayName;
+          const match = group.members.find(m => m.toLowerCase() === userDisplayName.toLowerCase());
+          if (match) {
+            appState.currentUser = match;
+          } else {
+            appState.currentUser = userDisplayName;
+            if (!group.members.includes(userDisplayName)) {
+              group.members.push(userDisplayName);
+            }
+          }
+          if (!group.memberProfiles[appState.currentUser]) {
+            group.memberProfiles[appState.currentUser] = {};
+          }
+          group.memberProfiles[appState.currentUser].email = appState.authUser.email;
+          commitStateChanges(`Auth sync: ${appState.currentUser}`);
+          renderApp();
+        } else {
+          if (!appState.isGuest && !appState.currentUser) {
+            appState.authUser = null;
+            renderAuthNav();
+          }
         }
-      } catch (err) {
-        console.warn('Firebase email auth fallback:', err);
+      });
+    }
+
+    // Google Sign-In with robust error handling and domain diagnostic
+    async function handleGoogleSignIn() {
+      hideAuthModalError();
+      const auth = getFirebaseAuth();
+      if (!auth) {
+        const errorMsg = 'Firebase Auth SDK is not available or offline. Please check your internet connection.';
+        console.error('[Firebase Auth Error]', errorMsg);
+        showToast(errorMsg, 'error');
+        showAuthModalError('Auth SDK Offline', errorMsg);
+        return;
       }
 
-      // Offline / Local auth session fallback
-      setAuthenticatedUser({
-        displayName: displayName,
-        email: email,
-        photoURL: null,
-        uid: 'user_' + Date.now()
-      });
+      const btn = document.getElementById('googleSignInBtn');
+      const btnText = document.getElementById('googleSignInBtnText');
+      const originalText = btnText ? btnText.textContent : 'Continue with Google';
+
+      try {
+        if (btnText) btnText.textContent = 'Connecting to Google...';
+        if (btn) btn.disabled = true;
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+
+        console.log('[Firebase Auth] Launching signInWithPopup for Google...');
+        const result = await auth.signInWithPopup(provider);
+
+        console.log('[Firebase Auth] Google sign-in successful for:', result.user.email);
+        showToast(`Welcome back, ${result.user.displayName || result.user.email}!`, 'success');
+        // onAuthStateChanged will handle UI switch & close modal
+      } catch (err) {
+        console.error('[Firebase Auth Error] Code:', err.code, 'Message:', err.message, err);
+
+        let friendlyTitle = 'Google Sign-in Failed';
+        let friendlyMsg = err.message || 'An error occurred during Google sign-in.';
+
+        if (err.code === 'auth/popup-blocked') {
+          friendlyTitle = 'Popup Blocked by Browser';
+          friendlyMsg = 'Your browser blocked the Google authentication popup. Please click the popup/shield icon in your browser address bar to allow popups for this site, then try again.';
+          showToast('⚠️ Google popup was blocked! Please allow popups.', 'error');
+        } else if (err.code === 'auth/unauthorized-domain') {
+          const currentHost = window.location.hostname || 'current domain';
+          friendlyTitle = `Domain Not Authorized (${currentHost})`;
+          friendlyMsg = `The domain "${currentHost}" is not authorized for OAuth operations in your Firebase project. To resolve this:\n1. Open Firebase Console -> Authentication -> Settings -> Authorized domains\n2. Click "Add domain" and enter "${currentHost}" (and "pr8848276-arch.github.io")\n3. Click Save.\n\nTip: You can click "Continue as Guest" below to preview the app immediately.`;
+          showToast(`⚠️ Domain "${currentHost}" is not authorized in Firebase!`, 'error');
+        } else if (err.code === 'auth/operation-not-allowed') {
+          friendlyTitle = 'Google Sign-In Disabled';
+          friendlyMsg = 'Google authentication is not enabled in your Firebase Console. Go to Firebase Console -> Authentication -> Sign-in method -> Click Google -> Enable and Save.';
+          showToast('⚠️ Google sign-in is disabled in Firebase Console!', 'error');
+        } else if (err.code === 'auth/popup-closed-by-user') {
+          friendlyTitle = 'Sign-in Cancelled';
+          friendlyMsg = 'The Google sign-in popup was closed before completing.';
+          showToast('Google Sign-in popup was closed.', 'warning');
+        } else if (err.code === 'auth/cancelled-popup-request') {
+          friendlyTitle = 'Request Cancelled';
+          friendlyMsg = 'A newer sign-in request took precedence.';
+          showToast('Sign-in popup request was cancelled.', 'info');
+        } else if (err.code === 'auth/network-request-failed') {
+          friendlyTitle = 'Network Error';
+          friendlyMsg = 'Unable to communicate with Google authentication servers. Please verify your internet connection.';
+          showToast('Network error connecting to Firebase.', 'error');
+        } else {
+          showToast(err.message || 'Google sign-in error', 'error');
+        }
+
+        showAuthModalError(friendlyTitle, friendlyMsg);
+      } finally {
+        if (btnText) btnText.textContent = originalText;
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // Email & Password Authentication (Sign-in and Registration)
+    async function handleEmailAuthSubmit(e) {
+      e.preventDefault();
+      hideAuthModalError();
+
+      const email = (document.getElementById('authEmailInput').value || '').trim();
+      const password = document.getElementById('authPasswordInput').value || '';
+      const displayName = (document.getElementById('authDisplayNameInput').value || '').trim();
+
+      // Input Validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        const msg = 'Please enter a valid email address (e.g. name@domain.com)';
+        showToast(msg, 'warning');
+        showAuthModalError('Invalid Email Address', msg);
+        document.getElementById('authEmailInput').focus();
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        const msg = 'Password must be at least 6 characters long.';
+        showToast(msg, 'warning');
+        showAuthModalError('Password Too Short', msg);
+        document.getElementById('authPasswordInput').focus();
+        return;
+      }
+
+      const auth = getFirebaseAuth();
+      if (!auth) {
+        const msg = 'Firebase Auth SDK is not available or offline. Please check your internet connection.';
+        console.error('[Firebase Auth Error]', msg);
+        showToast(msg, 'error');
+        showAuthModalError('Auth SDK Offline', msg);
+        return;
+      }
+
+      const submitBtn = document.getElementById('authEmailSubmitBtn');
+      const originalText = submitBtn ? submitBtn.textContent : (isRegisterMode ? 'Register Account' : 'Sign In with Email');
+
+      try {
+        if (submitBtn) {
+          submitBtn.textContent = isRegisterMode ? 'Creating Account...' : 'Signing In...';
+          submitBtn.disabled = true;
+        }
+
+        if (isRegisterMode) {
+          console.log('[Firebase Auth] Creating user with email and password:', email);
+          const userCred = await auth.createUserWithEmailAndPassword(email, password);
+          if (userCred.user && displayName) {
+            try {
+              await userCred.user.updateProfile({ displayName: displayName });
+            } catch (pErr) {
+              console.warn('[Firebase Auth] Profile name update notice:', pErr);
+            }
+          }
+          showToast(`Account created! Welcome, ${displayName || email}!`, 'success');
+          // onAuthStateChanged will handle UI switch & close modal
+        } else {
+          console.log('[Firebase Auth] Signing in with email and password:', email);
+          const userCred = await auth.signInWithEmailAndPassword(email, password);
+          showToast(`Welcome back, ${userCred.user.displayName || userCred.user.email}!`, 'success');
+          // onAuthStateChanged will handle UI switch & close modal
+        }
+      } catch (err) {
+        console.error('[Firebase Auth Error] Code:', err.code, 'Message:', err.message, err);
+
+        let friendlyTitle = isRegisterMode ? 'Registration Failed' : 'Sign-In Failed';
+        let friendlyMsg = err.message || 'An error occurred during authentication.';
+
+        if (err.code === 'auth/user-not-found') {
+          friendlyTitle = 'User Not Found';
+          friendlyMsg = 'No account exists with this email address. Please verify your email or click "Need an account? Register" above.';
+        } else if (err.code === 'auth/wrong-password') {
+          friendlyTitle = 'Incorrect Password';
+          friendlyMsg = 'The password entered is incorrect. Please double-check and try again.';
+        } else if (err.code === 'auth/invalid-credential') {
+          friendlyTitle = 'Invalid Credentials';
+          friendlyMsg = 'Invalid email or password. Please verify your login credentials or register an account.';
+        } else if (err.code === 'auth/email-already-in-use') {
+          friendlyTitle = 'Email Already Registered';
+          friendlyMsg = 'An account with this email already exists. Please switch to "Sign In" mode.';
+        } else if (err.code === 'auth/weak-password') {
+          friendlyTitle = 'Weak Password';
+          friendlyMsg = 'The password is too weak. Firebase requires at least 6 characters.';
+        } else if (err.code === 'auth/invalid-email') {
+          friendlyTitle = 'Invalid Email Format';
+          friendlyMsg = 'The email address format is not recognized by Firebase.';
+        } else if (err.code === 'auth/operation-not-allowed') {
+          friendlyTitle = 'Email/Password Sign-In Disabled';
+          friendlyMsg = 'Email/Password provider is not enabled in Firebase Console. Go to Firebase Console -> Authentication -> Sign-in method -> Email/Password -> Enable and Save.';
+        } else if (err.code === 'auth/too-many-requests') {
+          friendlyTitle = 'Too Many Failed Attempts';
+          friendlyMsg = 'Access to this account has been temporarily disabled due to many failed login attempts. Please wait a moment and try again.';
+        } else if (err.code === 'auth/network-request-failed') {
+          friendlyTitle = 'Network Error';
+          friendlyMsg = 'Unable to reach Firebase authentication servers. Please verify your internet connection.';
+        }
+
+        showToast(friendlyTitle + ': ' + friendlyMsg, 'error');
+        showAuthModalError(friendlyTitle, friendlyMsg);
+      } finally {
+        if (submitBtn) {
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        }
+      }
+    }
+
+    // Guest / Demo Mode Bypass (Offline & instant testing)
+    function continueAsGuest() {
+      appState.isGuest = true;
+      try { sessionStorage.setItem('fairshare_is_guest', 'true'); } catch (e) {}
+      hideAuthModalError();
+      const group = getCurrentGroup();
+      if (!appState.currentUser || !group.members.includes(appState.currentUser)) {
+        appState.currentUser = group.members[0] || 'Rahul';
+      }
       closeAuthModal();
-      showToast(`Signed in as ${displayName}`, 'success');
+      renderApp();
+      renderAuthNav();
+      showToast('Continuing in Guest Preview mode. You can sign in anytime from the top bar.', 'info');
     }
 
     function loginAsDemoUser(name, email, upiId = '') {
-      setAuthenticatedUser({
+      hideAuthModalError();
+      appState.isGuest = false;
+      try { sessionStorage.removeItem('fairshare_is_guest'); } catch (e) {}
+      appState.authUser = {
         displayName: name,
         email: email,
         photoURL: null,
         uid: 'demo_' + name.toLowerCase().replace(/\s+/g, '_')
-      });
-      // Link to group member if matching
+      };
       const group = getCurrentGroup();
       if (!group.members.includes(name)) {
         group.members.push(name);
@@ -1815,28 +2083,29 @@
       if (!group.memberProfiles[name]) {
         group.memberProfiles[name] = {};
       }
-      if (upiId) {
-        group.memberProfiles[name].upiId = upiId;
-      }
+      if (upiId) group.memberProfiles[name].upiId = upiId;
       group.memberProfiles[name].email = email;
-      selectCurrentUser(name);
-      commitStateChanges(`Member ${name} authenticated`);
+      appState.currentUser = name;
+
+      saveLocalStateOnly();
       closeAuthModal();
+      renderAuthNav();
+      renderApp();
       showToast(`Logged in as demo user: ${name}`, 'success');
     }
 
     function setAuthenticatedUser(userObj) {
       appState.authUser = userObj;
+      appState.isGuest = false;
+      try { sessionStorage.removeItem('fairshare_is_guest'); } catch (e) {}
       saveLocalStateOnly();
       renderAuthNav();
       
-      // Auto-match or invite to active group
       const group = getCurrentGroup();
       const match = group.members.find(m => m.toLowerCase() === userObj.displayName.toLowerCase());
       if (match) {
         selectCurrentUser(match);
       } else {
-        // If not in members, prompt to link or join
         appState.currentUser = userObj.displayName;
         if (!group.members.includes(userObj.displayName)) {
           group.members.push(userObj.displayName);
@@ -1852,11 +2121,14 @@
 
     function handleLogOut() {
       if (confirm('Are you sure you want to log out of FairShare?')) {
-        if (firebaseAuth) {
-          try { firebaseAuth.signOut(); } catch (e) {}
+        const auth = getFirebaseAuth();
+        if (auth) {
+          try { auth.signOut(); } catch (e) { console.warn('[Firebase Auth] Sign out error:', e); }
         }
         appState.authUser = null;
+        appState.isGuest = false;
         appState.currentUser = null;
+        try { sessionStorage.removeItem('fairshare_is_guest'); } catch (e) {}
         localStorage.removeItem(AUTH_USER_KEY);
         localStorage.removeItem('fairshare_user_' + appState.currentGroupId);
         saveLocalStateOnly();
@@ -3973,8 +4245,21 @@
       if (appState.activeTab === 'recurring') renderRecurringBills();
     }
 
-    // --- FIREBASE CLOUD FIRESTORE INTEGRATION ---
+    // --- FIREBASE CLOUD FIRESTORE & AUTH INTEGRATION ---
     function initFirebaseCloud() {
+      // Developer Console Helper Instructions
+      console.info(
+        '%c[FairShare Firebase Setup Guide]%c\n' +
+        '1. Firebase Console -> Authentication -> Sign-in method: Enable "Google" and "Email/Password".\n' +
+        '2. Firebase Console -> Authentication -> Settings -> Authorized domains: Add:\n' +
+        '   - pr8848276-arch.github.io\n' +
+        '   - localhost\n' +
+        '   - 127.0.0.1\n' +
+        'Tip: Users can click "Continue as Guest" to preview and use the app offline at any time.',
+        'font-weight:bold;color:#4f46e5;font-size:12px;',
+        'color:#64748b;font-size:11px;'
+      );
+
       try {
         let config = DEFAULT_FIREBASE_CONFIG;
         const savedConfigStr = localStorage.getItem(FB_CONFIG_KEY);
@@ -3988,23 +4273,13 @@
         if (typeof firebase !== 'undefined') {
           if (!firebase.apps.length) firebase.initializeApp(config);
           firebaseDb = firebase.firestore();
-          try { firebaseAuth = firebase.auth(); } catch (e) {}
+
+          // Initialize Firebase Auth with LOCAL persistence and persistent observer
+          getFirebaseAuth();
+
           isCloudOnline = true;
           setCloudStatusUI(true, 'Firestore Connected');
           listenToActiveGroupInCloud();
-
-          if (firebaseAuth) {
-            firebaseAuth.onAuthStateChanged(user => {
-              if (user) {
-                setAuthenticatedUser({
-                  displayName: user.displayName || user.email.split('@')[0],
-                  email: user.email,
-                  photoURL: user.photoURL,
-                  uid: user.uid
-                });
-              }
-            });
-          }
         }
       } catch (err) {
         console.warn('Firebase init offline fallback:', err);
@@ -4363,8 +4638,8 @@
       initFirebaseCloud();
       renderApp();
 
-      // If no auth user, prompt welcome auth after short delay
-      if (!appState.authUser) {
+      // If no auth user and not in guest mode, prompt welcome auth after short delay
+      if (!appState.authUser && !appState.isGuest) {
         setTimeout(() => openAuthModal(), 600);
       }
     });
