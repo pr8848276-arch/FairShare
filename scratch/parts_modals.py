@@ -21,7 +21,7 @@ MODALS_HTML = r"""
       </div>
 
       <!-- Inline Error Alert Box (Clean user feedback for domain/credential/popup issues) -->
-      <div id="authModalErrorBox" class="hidden my-3 p-3 rounded-2xl text-xs bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-900/80 text-rose-800 dark:text-rose-200 animate-pulse">
+      <div id="authModalErrorBox" class="hidden my-3 p-3.5 rounded-2xl text-xs bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-900/80 text-rose-800 dark:text-rose-200">
         <div class="flex items-start gap-2">
           <span class="text-base leading-none">⚠️</span>
           <div class="flex-1">
@@ -29,6 +29,28 @@ MODALS_HTML = r"""
             <p id="authModalErrorMessage" class="text-[11px] mt-0.5 leading-relaxed text-rose-700 dark:text-rose-300"></p>
           </div>
           <button type="button" onclick="hideAuthModalError()" class="text-rose-400 hover:text-rose-700 p-0.5 font-bold">✕</button>
+        </div>
+
+        <!-- Inline Prompt to Enter / Paste Firebase Keys (auth/configuration-not-found) -->
+        <div id="authConfigPromptBox" class="hidden mt-3 pt-3 border-t border-rose-200/80 dark:border-rose-900/80 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px]">🔧 Enter or Paste Firebase Keys:</span>
+            <button type="button" onclick="pasteFirebaseConfigFromClipboard()" class="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+              📋 Paste from Clipboard
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-600 dark:text-slate-400 leading-normal">
+            Paste your Firebase web config JSON or object below (from Firebase Console &gt; Project Settings &gt; General &gt; Your apps):
+          </p>
+          <textarea id="authConfigPasteInput" rows="3" placeholder='{ "apiKey": "...", "projectId": "...", "authDomain": "..." }' class="w-full text-[10px] font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="applyCustomFirebaseConfig()" class="flex-1 py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-xl text-[11px] transition shadow-sm">
+              💾 Save Keys & Retry
+            </button>
+            <button type="button" onclick="continueAsGuest()" class="flex-1 py-1.5 px-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-[11px] transition border border-slate-300 dark:border-slate-700">
+              👤 Continue as Guest
+            </button>
+          </div>
         </div>
       </div>
 

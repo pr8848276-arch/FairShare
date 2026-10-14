@@ -115,18 +115,36 @@ try:
     print("Validation error title for short password:", pwd_title)
     assert "Password Too Short" in pwd_title, f"Expected Password Too Short error, got: {pwd_title}"
 
-    print("--- 6. Testing Continue as Guest Bypass ---")
+    print("--- 6. Testing auth/configuration-not-found Error Prompt Handling ---")
+    cdp_eval(ws, "showAuthModalError('Firebase Auth Not Configured (auth/configuration-not-found)', 'Test config prompt'); showAuthConfigPrompt();")
+    prompt_visible = not cdp_eval(ws, "document.getElementById('authConfigPromptBox').classList.contains('hidden')")
+    paste_input_exists = cdp_eval(ws, "Boolean(document.getElementById('authConfigPasteInput'))")
+    print("Configuration prompt box visible:", prompt_visible, "Paste input exists:", paste_input_exists)
+    assert prompt_visible and paste_input_exists, "Configuration-not-found prompt box should be visible!"
+
+    print("--- 7. Testing Continue as Guest Fallback & Working Local Session ---")
     cdp_eval(ws, "continueAsGuest()")
     time.sleep(0.3)
     is_guest = cdp_eval(ws, "appState.isGuest")
     session_guest = cdp_eval(ws, "sessionStorage.getItem('fairshare_is_guest')")
+    auth_user = cdp_eval(ws, "appState.authUser")
     modal_closed = cdp_eval(ws, "document.getElementById('authModal').classList.contains('hidden')")
-    print("Guest mode state:", {"isGuest": is_guest, "sessionStorage": session_guest, "modalClosed": modal_closed})
+    prompt_hidden_now = cdp_eval(ws, "document.getElementById('authConfigPromptBox').classList.contains('hidden')")
+    print("Guest mode state:", {
+        "isGuest": is_guest,
+        "sessionStorage": session_guest,
+        "modalClosed": modal_closed,
+        "promptHidden": prompt_hidden_now,
+        "authUser": auth_user
+    })
     assert is_guest is True, "appState.isGuest should be True!"
     assert session_guest == "true", "sessionStorage fairshare_is_guest should be 'true'!"
     assert modal_closed is True, "authModal should be closed!"
+    assert prompt_hidden_now is True, "authConfigPromptBox should be hidden after continuing as guest!"
+    assert auth_user and auth_user.get("isGuest") is True, "appState.authUser should be populated with guest session!"
+    assert auth_user.get("displayName") in ["Rahul", "Amit", "Pooja"], f"Expected guest displayName in group members, got {auth_user.get('displayName')}"
 
-    print("\n[SUCCESS] ALL FIREBASE AUTH HEADLESS TESTS PASSED WITH 100% SUCCESS!")
+    print("\n[SUCCESS] ALL FIREBASE AUTH & CONFIGURATION-NOT-FOUND TESTS PASSED WITH 100% SUCCESS!")
 
     ws.close()
 

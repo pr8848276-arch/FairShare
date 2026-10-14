@@ -28,6 +28,22 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
       measurementId: "G-8RNMZQH68W"
     };
 
+    function getCurrentFirebaseConfig() {
+      const savedConfigStr = localStorage.getItem(FB_CONFIG_KEY);
+      if (savedConfigStr) {
+        try {
+          const parsed = JSON.parse(savedConfigStr);
+          if (parsed && !parsed.disabled && parsed.apiKey && parsed.projectId) {
+            return {
+              ...DEFAULT_FIREBASE_CONFIG,
+              ...parsed
+            };
+          }
+        } catch (e) {}
+      }
+      return DEFAULT_FIREBASE_CONFIG;
+    }
+
     // Global Application State
     let appState = {
       currentGroupId: 'ROOM-101',
@@ -350,6 +366,118 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
     function hideAuthModalError() {
       const box = document.getElementById('authModalErrorBox');
       if (box) box.classList.add('hidden');
+      const promptBox = document.getElementById('authConfigPromptBox');
+      if (promptBox) promptBox.classList.add('hidden');
+    }
+
+    function showAuthConfigPrompt() {
+      const promptBox = document.getElementById('authConfigPromptBox');
+      if (promptBox) {
+        promptBox.classList.remove('hidden');
+        const pasteInput = document.getElementById('authConfigPasteInput');
+        if (pasteInput && !pasteInput.value) {
+          const cfg = getCurrentFirebaseConfig();
+          pasteInput.placeholder = JSON.stringify({
+            apiKey: cfg.apiKey,
+            projectId: cfg.projectId,
+            authDomain: cfg.authDomain,
+            appId: cfg.appId
+          }, null, 2);
+        }
+      }
+    }
+
+    async function pasteFirebaseConfigFromClipboard() {
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            document.getElementById('authConfigPasteInput').value = text;
+            showToast('Pasted from clipboard', 'info');
+          }
+        } else {
+          showToast('Clipboard access not allowed. Please paste manually.', 'warning');
+        }
+      } catch (err) {
+        showToast('Please paste manually into the text box.', 'warning');
+      }
+    }
+
+    function applyCustomFirebaseConfig() {
+      const input = (document.getElementById('authConfigPasteInput').value || '').trim();
+      if (!input) {
+        showToast('Please paste or enter your Firebase configuration', 'warning');
+        return;
+      }
+
+      let parsedConfig = null;
+      try {
+        parsedConfig = JSON.parse(input);
+      } catch (e) {
+        try {
+          const apiKeyMatch = input.match(/apiKey\s*:\s*["']([^"']+)["']/);
+          const projectIdMatch = input.match(/projectId\s*:\s*["']([^"']+)["']/);
+          const authDomainMatch = input.match(/authDomain\s*:\s*["']([^"']+)["']/);
+          const appIdMatch = input.match(/appId\s*:\s*["']([^"']+)["']/);
+          if (apiKeyMatch && projectIdMatch) {
+            parsedConfig = {
+              apiKey: apiKeyMatch[1],
+              projectId: projectIdMatch[1],
+              authDomain: authDomainMatch ? authDomainMatch[1] : `${projectIdMatch[1]}.firebaseapp.com`,
+              appId: appIdMatch ? appIdMatch[1] : ''
+            };
+          }
+        } catch (e2) {}
+      }
+
+      if (!parsedConfig || !parsedConfig.apiKey || !parsedConfig.projectId) {
+        showToast('Invalid configuration! Must contain apiKey and projectId.', 'error');
+        return;
+      }
+
+      const fullConfig = {
+        ...DEFAULT_FIREBASE_CONFIG,
+        ...parsedConfig,
+        disabled: false
+      };
+
+      localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(fullConfig));
+      showToast('Firebase configuration saved! Reinitializing...', 'success');
+      reinitFirebaseWithConfig(fullConfig);
+      hideAuthModalError();
+    }
+
+    function reinitFirebaseWithConfig(config) {
+      try {
+        if (typeof firebase !== 'undefined') {
+          if (firebase.apps && firebase.apps.length) {
+            firebase.app().delete().then(() => {
+              firebase.initializeApp(config);
+              firebaseDb = firebase.firestore();
+              firebaseAuth = null;
+              authObserverAttached = false;
+              getFirebaseAuth();
+              isCloudOnline = true;
+              setCloudStatusUI(true, 'Firestore Connected');
+              listenToActiveGroupInCloud();
+            }).catch(e => {
+              console.warn('[Firebase] App reinit notice:', e);
+              location.reload();
+            });
+          } else {
+            firebase.initializeApp(config);
+            firebaseDb = firebase.firestore();
+            firebaseAuth = null;
+            authObserverAttached = false;
+            getFirebaseAuth();
+            isCloudOnline = true;
+            setCloudStatusUI(true, 'Firestore Connected');
+            listenToActiveGroupInCloud();
+          }
+        }
+      } catch (err) {
+        console.error('[Firebase] Reinit error:', err);
+      }
     }
 
     let isRegisterMode = false;
@@ -401,14 +529,7 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
       if (typeof firebase !== 'undefined') {
         try {
           if (!firebase.apps.length) {
-            let config = DEFAULT_FIREBASE_CONFIG;
-            const savedConfigStr = localStorage.getItem(FB_CONFIG_KEY);
-            if (savedConfigStr) {
-              try {
-                const parsed = JSON.parse(savedConfigStr);
-                if (parsed && !parsed.disabled) config = parsed;
-              } catch (e) {}
-            }
+            const config = getCurrentFirebaseConfig();
             firebase.initializeApp(config);
           }
           if (firebase.auth) {
@@ -515,6 +636,11 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
           friendlyTitle = `Domain Not Authorized (${currentHost})`;
           friendlyMsg = `The domain "${currentHost}" is not authorized for OAuth operations in your Firebase project. To resolve this:\n1. Open Firebase Console -> Authentication -> Settings -> Authorized domains\n2. Click "Add domain" and enter "${currentHost}" (and "pr8848276-arch.github.io")\n3. Click Save.\n\nTip: You can click "Continue as Guest" below to preview the app immediately.`;
           showToast(`⚠️ Domain "${currentHost}" is not authorized in Firebase!`, 'error');
+        } else if (err.code === 'auth/configuration-not-found' || (err.message && err.message.toLowerCase().includes('configuration-not-found'))) {
+          friendlyTitle = 'Firebase Auth Not Configured (auth/configuration-not-found)';
+          friendlyMsg = 'Google Sign-In is not configured in your Firebase project. In Firebase Console -> Authentication -> Sign-in method, click "Google", toggle "Enable", choose a project support email, and click Save.\n\nYou can enter or paste your own Firebase keys below, or click "Continue as Guest" to test offline immediately.';
+          showToast('⚠️ Google provider not configured (auth/configuration-not-found)', 'error');
+          showAuthConfigPrompt();
         } else if (err.code === 'auth/operation-not-allowed') {
           friendlyTitle = 'Google Sign-In Disabled';
           friendlyMsg = 'Google authentication is not enabled in your Firebase Console. Go to Firebase Console -> Authentication -> Sign-in method -> Click Google -> Enable and Save.';
@@ -629,6 +755,10 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
         } else if (err.code === 'auth/invalid-email') {
           friendlyTitle = 'Invalid Email Format';
           friendlyMsg = 'The email address format is not recognized by Firebase.';
+        } else if (err.code === 'auth/configuration-not-found' || (err.message && err.message.toLowerCase().includes('configuration-not-found'))) {
+          friendlyTitle = 'Firebase Auth Not Configured (auth/configuration-not-found)';
+          friendlyMsg = 'Email/Password provider or Identity Platform is not enabled for this project in Firebase Console. Go to Firebase Console -> Authentication -> Sign-in method -> Email/Password -> Enable and Save, or paste custom keys below, or continue as Guest.';
+          showAuthConfigPrompt();
         } else if (err.code === 'auth/operation-not-allowed') {
           friendlyTitle = 'Email/Password Sign-In Disabled';
           friendlyMsg = 'Email/Password provider is not enabled in Firebase Console. Go to Firebase Console -> Authentication -> Sign-in method -> Email/Password -> Enable and Save.';
@@ -659,10 +789,19 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
       if (!appState.currentUser || !group.members.includes(appState.currentUser)) {
         appState.currentUser = group.members[0] || 'Rahul';
       }
+      // Populate working guest authUser so all UI checks, permissions, and avatars work flawlessly
+      appState.authUser = {
+        displayName: appState.currentUser,
+        email: (group.memberProfiles[appState.currentUser] && group.memberProfiles[appState.currentUser].email) || `${appState.currentUser.toLowerCase()}@fairshare.local`,
+        photoURL: null,
+        uid: `guest_${appState.currentUser.toLowerCase()}`,
+        isGuest: true
+      };
+      saveLocalStateOnly();
       closeAuthModal();
       renderApp();
       renderAuthNav();
-      showToast('Continuing in Guest Preview mode. You can sign in anytime from the top bar.', 'info');
+      showToast(`Welcome! Continuing as ${appState.currentUser} in Local Guest mode (offline & standalone).`, 'success');
     }
 
     function loginAsDemoUser(name, email, upiId = '') {
@@ -765,6 +904,7 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
             }
             <div class="text-left hidden sm:block">
               <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate max-w-[100px]">${u.displayName || 'User'}</span>
+              ${u.isGuest ? `<span class="text-[9px] text-amber-500 font-bold block leading-none">Guest Session</span>` : ''}
             </div>
             <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
@@ -773,12 +913,20 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
           <div class="absolute right-0 mt-1 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 hidden group-hover:block hover:block z-50">
             <div class="px-3.5 py-2 border-b border-slate-100 dark:border-slate-800">
               <span class="text-xs font-bold text-slate-900 dark:text-white block truncate">${u.displayName}</span>
-              <span class="text-[10px] text-slate-400 block truncate">${u.email || 'Google User'}</span>
+              <span class="text-[10px] text-slate-400 block truncate">${u.email || (u.isGuest ? 'Local Offline User' : 'Google User')}</span>
               <div class="mt-1 flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
                 <span>Active Member:</span>
                 <span class="font-bold">${appState.currentUser || 'Not selected'}</span>
               </div>
             </div>
+            ${
+              u.isGuest
+                ? `<button onclick="openAuthModal()" class="w-full text-left px-3.5 py-2 text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/50 flex items-center gap-2">
+                    <span>🔐</span>
+                    <span>Sign In with Firebase</span>
+                  </button>`
+                : ''
+            }
             <button onclick="openSetUpiModal('${(appState.currentUser || '').replace(/'/g, "\\'")}')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
               <span>💳</span>
               <span>Set My UPI ID</span>
@@ -2860,14 +3008,7 @@ JS_CODE = r"""  <!-- JAVASCRIPT APPLICATION CORE -->
       );
 
       try {
-        let config = DEFAULT_FIREBASE_CONFIG;
-        const savedConfigStr = localStorage.getItem(FB_CONFIG_KEY);
-        if (savedConfigStr) {
-          try {
-            const parsed = JSON.parse(savedConfigStr);
-            if (parsed && !parsed.disabled) config = parsed;
-          } catch (e) {}
-        }
+        const config = getCurrentFirebaseConfig();
 
         if (typeof firebase !== 'undefined') {
           if (!firebase.apps.length) firebase.initializeApp(config);
